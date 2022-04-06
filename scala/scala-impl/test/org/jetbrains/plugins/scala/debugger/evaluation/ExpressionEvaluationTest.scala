@@ -16,9 +16,9 @@ import org.junit.runner.RunWith
   TestScalaVersion.Scala_3_1
 ))
 @Category(Array(classOf[DebuggerTests]))
-class ScalaExpressionEvaluationTest extends ScalaExpressionEvaluationTestBase
+class ExpressionEvaluationTest extends ExpressionEvaluationTestBase
 
-abstract class ScalaExpressionEvaluationTestBase extends NewScalaDebuggerTestCase {
+abstract class ExpressionEvaluationTestBase extends NewScalaDebuggerTestCase {
 
   def testUnaryPrefix(): Unit = {
     createLocalProcess("UnaryPrefix")

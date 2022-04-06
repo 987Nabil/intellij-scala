@@ -1,8 +1,8 @@
 package org.jetbrains.plugins.scala
 package debugger
 
-import com.intellij.debugger.engine.{DebuggerUtils, SuspendContextImpl}
 import com.intellij.debugger.engine.evaluation.{CodeFragmentKind, EvaluateException}
+import com.intellij.debugger.engine.{DebuggerUtils, SuspendContextImpl}
 import com.intellij.debugger.impl.{DescriptorTestCase, OutputChecker}
 import com.intellij.execution.configurations.JavaParameters
 import com.intellij.openapi.projectRoots.Sdk
@@ -24,7 +24,6 @@ import org.junit.Assert.fail
 import java.io._
 import java.nio.file.{Files, Path}
 import java.security.MessageDigest
-import scala.jdk.CollectionConverters._
 import scala.util.{Try, Using}
 
 abstract class NewScalaDebuggerTestCase extends DescriptorTestCase with ScalaSdkOwner {

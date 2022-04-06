@@ -10,12 +10,22 @@ import org.junit.runner.RunWith
 @RunWithScalaVersions(Array(
   TestScalaVersion.Scala_2_11,
   TestScalaVersion.Scala_2_12,
-  TestScalaVersion.Scala_2_13,
-  TestScalaVersion.Scala_3_0,
-  TestScalaVersion.Scala_3_1
+  TestScalaVersion.Scala_2_13
 ))
 @Category(Array(classOf[DebuggerTests]))
 class VariablesFromPatternsEvaluationTest extends VariablesFromPatternsEvaluationTestBase
+
+@Category(Array(classOf[DebuggerTests]))
+class VariablesFromPatternsEvaluationTest_3_0 extends VariablesFromPatternsEvaluationTestBase {
+  override def supportedIn(version: ScalaVersion): Boolean = version == LatestScalaVersions.Scala_3_0
+
+  override def testAnonymousInMatch(): Unit = {}
+}
+
+@Category(Array(classOf[DebuggerTests]))
+class VariablesFromPatternsEvaluationTest_3_1 extends VariablesFromPatternsEvaluationTest_3_0 {
+  override def supportedIn(version: ScalaVersion): Boolean = version == LatestScalaVersions.Scala_3_1
+}
 
 abstract class VariablesFromPatternsEvaluationTestBase extends NewScalaDebuggerTestCase {
   def testMatch(): Unit = {
@@ -52,8 +62,44 @@ abstract class VariablesFromPatternsEvaluationTestBase extends NewScalaDebuggerT
     }
   }
 
+  def testRegexMatch(): Unit = {
+    createLocalProcess("RegexMatch")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals("-2.5", "number".evaluateAsString)
+      assertEquals("-", "sign".evaluateAsString)
+      assertEquals(".5", "dec".evaluateAsString)
+      assertEquals("name", "name".evaluateAsString)
+    }
+  }
+
+  def testMultilevel(): Unit = {
+    createLocalProcess("Multilevel")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals("name", "name".evaluateAsString)
+      assertEquals("[]", "args".evaluateAsString)
+      assertEquals("None", "none".evaluateAsString)
+      assertEquals("Some(List(1, 2))", "some".evaluateAsString)
+      assertEquals("List(1, 2)", "seq".evaluateAsString)
+      assertEquals("2", "two".evaluateAsString)
+    }
+  }
+
   def testLocalInMatch(): Unit = {
     createLocalProcess("LocalInMatch")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals("name", "name".evaluateAsString)
+      assertEquals("[]", "args".evaluateAsString)
+      assertEquals("Some(a)", "some".evaluateAsString)
+      assertEquals("a", "a".evaluateAsString)
+      assertEquals(10, "i".evaluateAsInt)
+    }
+  }
+
+  def testAnonymousInMatch(): Unit = {
+    createLocalProcess("AnonymousInMatch")
 
     doWhenPausedThenResume { implicit context =>
       assertEquals("name", "name".evaluateAsString)

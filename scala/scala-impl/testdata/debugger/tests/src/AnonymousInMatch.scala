@@ -1,15 +1,13 @@
-object LocalInMatch {
+object AnonymousInMatch {
   val name = "name"
   def main(args: Array[String]): Unit = {
     Option("a") match {
       case None =>
       case some @ Some(a) =>
-        def foo(i: Int): Unit = {
+        List(10) foreach { i =>
           // Breakpoint!
           println()
         }
-
-        foo(10)
     }
   }
 }

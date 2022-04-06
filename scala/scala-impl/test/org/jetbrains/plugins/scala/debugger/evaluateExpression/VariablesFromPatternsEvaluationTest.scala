@@ -32,72 +32,6 @@ class VariablesFromPatternsEvaluationTest_3_1 extends VariablesFromPatternsEvalu
 }
 
 abstract class VariablesFromPatternsEvaluationTestBase extends ScalaDebuggerTestCase {
-  addFileWithBreakpoints("Match.scala",
-    s"""
-       |object Match {
-       |  val name = "name"
-       |  def main(args: Array[String]): Unit = {
-       |    val x = (List(1, 2), Some("z"), None)
-       |    x match {
-       |      case all @ (list @ List(q, w), some @ Some(z), _) =>
-       |        println()$bp
-       |      case _ =>
-       |    }
-       |  }
-       |}
-      """.stripMargin.trim()
-  )
-
-  def testMatch(): Unit = {
-    runDebugger() {
-      waitForBreakpoint()
-      evalEquals("all", "(List(1, 2),Some(z),None)")
-      evalEquals("list", "List(1, 2)")
-      evalEquals("x", "(List(1, 2),Some(z),None)")
-      evalEquals("name", "name")
-      evalEquals("q", "1")
-      evalEquals("z", "z")
-      evalEquals("some", "Some(z)")
-      evalEquals("args", "[]")
-    }
-  }
-
-  addFileWithBreakpoints("MatchInForStmt.scala",
-    s"""
-       |object MatchInForStmt {
-       |  val name = "name"
-       |  def main(args: Array[String]): Unit = {
-       |    for (s <- List("a", "b"); if s == "a"; ss = s + s; i <- List(1,2); if i == 1; si = s + i) {
-       |      val x = (List(1, 2), Some("z"), ss :: i :: Nil)
-       |      x match {
-       |        case all @ (q :: qs, some @ Some(z), list @ List(m, _)) =>
-       |          println()$bp
-       |        case _ =>
-       |      }
-       |    }
-       |  }
-       |}
-      """.stripMargin.trim()
-  )
-
-  def testMatchInForStmt(): Unit = {
-    runDebugger() {
-      waitForBreakpoint()
-      evalEquals("all", "(List(1, 2),Some(z),List(aa, 1))")
-      evalEquals("x", "(List(1, 2),Some(z),List(aa, 1))")
-      evalEquals("name", "name")
-      evalEquals("q", "1")
-      evalEquals("qs", "List(2)")
-      evalEquals("z", "z")
-      evalEquals("list", "List(aa, 1)")
-      evalEquals("m", "aa")
-      evalEquals("some", "Some(z)")
-      evalEquals("ss", "aa")
-      evalEquals("i", "1")
-      evalEquals("args", "[]")
-    }
-  }
-
   addFileWithBreakpoints("RegexMatch.scala",
     {
       val pattern = """"(-)?(\\d+)(\\.\\d*)?".r"""
@@ -160,35 +94,6 @@ abstract class VariablesFromPatternsEvaluationTestBase extends ScalaDebuggerTest
       evalEquals("some", "Some(List(1, 2))")
       evalEquals("seq", "List(1, 2)")
       evalEquals("two", "2")
-    }
-  }
-
-  addFileWithBreakpoints("LocalInMatch.scala",
-    s"""
-       |object LocalInMatch {
-       |  val name = "name"
-       |  def main(args: Array[String]): Unit = {
-       |    Option("a") match {
-       |      case None =>
-       |      case some @ Some(a) =>
-       |        def foo(i: Int): Unit = {
-       |          println()$bp
-       |        }
-       |        foo(10)
-       |    }
-       |  }
-       |}
-      """.stripMargin.trim()
-  )
-
-  def testLocalInMatch(): Unit = {
-    runDebugger() {
-      waitForBreakpoint()
-      evalEquals("name", "name")
-      evalEquals("args", "[]")
-      evalEquals("some", "Some(a)")
-      evalEquals("a", "a")
-      evalEquals("i", "10")
     }
   }
 

@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.scala
 package debugger
 
-import com.intellij.debugger.engine.SuspendContextImpl
+import com.intellij.debugger.engine.{DebuggerUtils, SuspendContextImpl}
 import com.intellij.debugger.engine.evaluation.{CodeFragmentKind, EvaluateException}
 import com.intellij.debugger.impl.{DescriptorTestCase, OutputChecker}
 import com.intellij.execution.configurations.JavaParameters
@@ -179,18 +179,13 @@ abstract class NewScalaDebuggerTestCase extends DescriptorTestCase with ScalaSdk
   }
 
   protected implicit class EvaluateAsOps(expression: String) {
-    private def renderAsString(ref: ObjectReference)(implicit context: SuspendContextImpl): String = {
-      val process = context.getDebugProcess
-      val ec = createEvaluationContext(context)
-      val method = ref.referenceType().methodsByName("toString", "()Ljava/lang/String;").get(0)
-      process.invokeMethod(ec, ref, method, List.empty.asJava).asInstanceOf[StringReference].value()
-    }
-
     def evaluateAs[V <: Value](implicit context: SuspendContextImpl): V =
       evaluate(CodeFragmentKind.EXPRESSION, expression, context).asInstanceOf[V]
 
-    def evaluateAsString(implicit context: SuspendContextImpl): String =
-      renderAsString(evaluateAs[ObjectReference])
+    def evaluateAsString(implicit context: SuspendContextImpl): String = {
+      val ec = createEvaluationContext(context)
+      DebuggerUtils.getValueAsString(ec, evaluateAs[ObjectReference])
+    }
 
     def evaluateAsInt(implicit context: SuspendContextImpl): Int =
       evaluateAs[IntegerValue].value()

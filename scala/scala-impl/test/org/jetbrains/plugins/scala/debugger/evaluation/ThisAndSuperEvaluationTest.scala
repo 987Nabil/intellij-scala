@@ -58,4 +58,52 @@ abstract class ThisAndSuperEvaluationTestBase extends NewScalaDebuggerTestCase {
       assertEquals(1, "ThisInvocationFromInnerClass.this.foo".evaluateAsInt)
     }
   }
+
+  def testSuperInvocationFromInner(): Unit = {
+    createLocalProcess("SuperInvocationFromInner")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(1, "SuperInvocationFromInner.super.foo".evaluateAsInt)
+    }
+  }
+
+  def testSuperTraitInvocationFromInner(): Unit = {
+    createLocalProcess("SuperTraitInvocationFromInner")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(1, "SuperTraitInvocationFromInner.super.foo".evaluateAsInt)
+    }
+  }
+
+  def testSuperTraitInvocation(): Unit = {
+    createLocalProcess("SuperTraitInvocation")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(1, "foo".evaluateAsInt)
+    }
+  }
+
+  def testOuterSuperInnerTraitInvocation(): Unit = {
+    createLocalProcess("OuterSuperInnerTraitInvocation")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(2, "E.super.ioi".evaluateAsInt)
+    }
+  }
+
+  def testInnerOuterEtc(): Unit = {
+    createLocalProcess("InnerOuterEtc")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(1, "foo".evaluateAsInt)
+    }
+  }
+
+  def testInnerOuterInheritedOuterFieldEtc(): Unit = {
+    createLocalProcess("InnerOuterInheritedOuterFieldEtc")
+
+    doWhenPausedThenResume { implicit context =>
+      assertEquals(1, "foo".evaluateAsInt)
+    }
+  }
 }

@@ -4,6 +4,7 @@ package debugger
 import com.intellij.debugger.engine.evaluation.{CodeFragmentKind, EvaluateException}
 import com.intellij.debugger.engine.{DebuggerUtils, SuspendContextImpl}
 import com.intellij.debugger.impl.{DescriptorTestCase, OutputChecker}
+import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.execution.configurations.JavaParameters
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.vfs.VfsUtil
@@ -86,6 +87,11 @@ abstract class NewScalaDebuggerTestCase extends DescriptorTestCase with ScalaSdk
     srcPath.toFile.listFiles().foreach { f =>
       VfsUtil.findFile(f.toPath, true)
     }
+  }
+
+  override protected def initApplication(): Unit = {
+    super.initApplication()
+    NodeRendererSettings.getInstance().getClassRenderer.SHOW_DECLARED_TYPE = false
   }
 
   override protected def tearDown(): Unit = {

@@ -1,9 +1,8 @@
 package org.jetbrains.plugins.scala.debugger.renderers
 
+import com.intellij.debugger.engine.SuspendContextImpl
 import org.jetbrains.plugins.scala.DebuggerTests
-import org.jetbrains.plugins.scala.debugger.ScalaDebuggerTestCase
 import org.jetbrains.plugins.scala.util.runners.{MultipleScalaVersionsRunner, RunWithScalaVersions, TestScalaVersion}
-import org.junit.Assert.assertEquals
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 
@@ -17,9 +16,11 @@ import org.junit.runner.RunWith
 ))
 @Category(Array(classOf[DebuggerTests]))
 class SimpleRendererTest extends RendererTestBase {
-  protected def checkLabelRendering(variableToExpectedLabel: (String, String)*): Unit = {
-    runDebugger() {
-      waitForBreakpoint()
+  private def checkLabelRendering(variableToExpectedLabel: (String, String)*): Unit = {
+    createLocalProcess("LiteralRendering")
+
+    doWhenXSessionPausedThenResume { () =>
+      implicit val context: SuspendContextImpl = getDebugProcess.getDebuggerContext.getSuspendContext
       for {
         (variable, expected) <- variableToExpectedLabel
       } {
@@ -29,20 +30,6 @@ class SimpleRendererTest extends RendererTestBase {
     }
   }
 
-  addFileWithBreakpoints("LiteralRendering.scala",
-    s"""
-       |object LiteralRendering {
-       |  def main(args: Array[String]) : Unit = {
-       |    val x1: String = "42"
-       |    val x2: String = null
-       |    val x3: Int = 42
-       |    val x4: Boolean = true
-       |
-       |    println() $bp
-       |  }
-       |}
-      """.replace("\r", "").stripMargin.trim
-  )
   def testLiteralRendering(): Unit = {
     checkLabelRendering(
       "x1" -> "x1 = 42",

@@ -1,5 +1,8 @@
-package org.jetbrains.plugins.scala.debugger.renderers
+package org.jetbrains.plugins.scala
+package debugger
+package renderers
 
+import com.intellij.debugger.engine.SuspendContextImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.jdi.LocalVariablesUtil
 import com.intellij.debugger.ui.impl.ThreadsDebuggerTree
@@ -11,7 +14,6 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.xdebugger.frame.{XDebuggerTreeNodeHyperlink, XValueChildrenList}
 import com.intellij.xdebugger.impl.ui.XDebuggerUIConstants
 import com.sun.jdi.Value
-import org.jetbrains.plugins.scala.debugger.ScalaDebuggerTestCase
 import org.jetbrains.plugins.scala.debugger.ui.util._
 
 import java.util.concurrent.CompletableFuture
@@ -19,22 +21,22 @@ import javax.swing.Icon
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-abstract class RendererTestBase extends ScalaDebuggerTestCase {
+abstract class RendererTestBase extends NewScalaDebuggerTestCase {
 
   protected implicit val DefaultTimeout: Duration = 3.minutes
 
-  protected def renderLabelAndChildren(name: String, childrenCount: Option[Int], findVariable: (DebuggerTree, EvaluationContextImpl, String) => ValueDescriptorImpl = localVar)(implicit timeout: Duration): (String, Seq[String]) = {
+  protected def renderLabelAndChildren(name: String, childrenCount: Option[Int], findVariable: (DebuggerTree, EvaluationContextImpl, String) => ValueDescriptorImpl = localVar)(implicit context: SuspendContextImpl, timeout: Duration): (String, Seq[String]) = {
     val frameTree = new ThreadsDebuggerTree(getProject)
     Disposer.register(getTestRootDisposable, frameTree)
-    val context = evaluationContext()
 
     (for {
-      variable <- onDebuggerManagerThread(context)(findVariable(frameTree, context, name))
-      label <- renderLabel(variable, context)
-      value <- onDebuggerManagerThread(context)(variable.calcValue(context))
+      ec <- onDebuggerManagerThread(context)(createEvaluationContext(context))
+      variable <- onDebuggerManagerThread(context)(findVariable(frameTree, ec, name))
+      label <- renderLabel(variable, ec)
+      value <- onDebuggerManagerThread(context)(variable.calcValue(ec))
       renderer <- onDebuggerManagerThread(context)(variable.getRenderer(context.getDebugProcess)).flatten
-      children <- childrenCount.map(c => buildChildren(value, frameTree, variable, renderer, context, c)).getOrElse(CompletableFuture.completedFuture(Seq.empty))
-      childrenLabels <- children.map(renderLabel(_, context)).sequence
+      children <- childrenCount.map(c => buildChildren(value, frameTree, variable, renderer, ec, c)).getOrElse(CompletableFuture.completedFuture(Seq.empty))
+      childrenLabels <- children.map(renderLabel(_, ec)).sequence
     } yield (label, childrenLabels)).get(timeout.length, timeout.unit)
   }
 
@@ -85,14 +87,14 @@ abstract class RendererTestBase extends ScalaDebuggerTestCase {
     label.contains(XDebuggerUIConstants.getCollectingDataMessage) ||
       label.split(" = ").lengthIs <= 1
 
-  protected def localVar(frameTree: DebuggerTree, context: EvaluationContextImpl, name: String): LocalVariableDescriptorImpl = {
+  final protected def localVar(frameTree: DebuggerTree, context: EvaluationContextImpl, name: String): LocalVariableDescriptorImpl = {
     val frameProxy = context.getFrameProxy
     val local = frameTree.getNodeFactory.getLocalVariableDescriptor(null, frameProxy.visibleVariableByName(name))
     local.setContext(context)
     local
   }
 
-  protected def parameter(index: Int)(frameTree: DebuggerTree, context: EvaluationContextImpl, name: String): ValueDescriptorImpl = {
+  final protected def parameter(index: Int)(frameTree: DebuggerTree, context: EvaluationContextImpl, name: String): ValueDescriptorImpl = {
     val _ = name
     val frameProxy = context.getFrameProxy
     val mapping = LocalVariablesUtil.fetchValues(frameProxy, context.getDebugProcess, true)

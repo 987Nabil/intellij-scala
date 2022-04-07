@@ -163,9 +163,9 @@ abstract class NewScalaDebuggerTestCase extends DescriptorTestCase with ScalaSdk
   }
 
   override protected def createBreakpoints(className: String): Unit = {
-    if (!classesOutputPath.resolve(s"$className.class").toFile.exists()) {
-      fail(s"Could not find compiled class $className")
-    }
+//    if (!classesOutputPath.resolve(s"$className.class").toFile.exists()) {
+//      fail(s"Could not find compiled class $className")
+//    }
 
     val manager = ScalaPsiManager.instance(getProject)
     val psiClass = inReadAction(manager.getCachedClass(GlobalSearchScope.allScope(getProject), className))

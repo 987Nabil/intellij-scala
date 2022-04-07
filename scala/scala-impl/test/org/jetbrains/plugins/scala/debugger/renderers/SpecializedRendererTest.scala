@@ -2,8 +2,8 @@ package org.jetbrains.plugins.scala
 package debugger
 package renderers
 
+import com.intellij.debugger.engine.SuspendContextImpl
 import org.jetbrains.plugins.scala.util.runners.{MultipleScalaVersionsRunner, RunWithScalaVersions, TestScalaVersion}
-import org.junit.Assert
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 
@@ -16,26 +16,18 @@ import org.junit.runner.RunWith
 ))
 @Category(Array(classOf[DebuggerTests]))
 class SpecializedRendererTest extends RendererTestBase {
-
-  addFileWithBreakpoints("SpecializedTuple.scala",
-    s"""object SpecializedTuple {
-       |  def main(args: Array[String]): Unit = {
-       |    val x = (1, 2)
-       |    println()$bp
-       |  }
-       |}
-  """.stripMargin)
-
   def testSpecializedTuple(): Unit = {
     checkChildrenNames("x", List("_1", "_2"))
   }
 
   private def checkChildrenNames(varName: String, childrenNames: Seq[String]): Unit = {
-    runDebugger() {
-      waitForBreakpoint()
+    createLocalProcess("SpecializedTuple")
+
+    doWhenXSessionPausedThenResume { () =>
+      implicit val context: SuspendContextImpl = getDebugProcess.getDebuggerContext.getSuspendContext
       val (_, labels) = renderLabelAndChildren(varName, Some(childrenNames.length))
       val names = labels.flatMap(_.split(" = ").headOption)
-      Assert.assertEquals(childrenNames.sorted, names.sorted)
+      assertEquals(childrenNames.sorted, names.sorted)
     }
   }
 }
